@@ -1,4 +1,5 @@
 from ai.inferencers.litert import LiteRT
+from ai.inferencers.onnxrt import OnnxRT
 from ai.architectures.yolov5 import YOLOv5
 from ai.architectures.yolov8 import YOLOv8
 from ai.architectures.yolo11 import YOLO11
@@ -7,7 +8,7 @@ import time
 
 class Detector:
 
-    __architecture_type: str
+    __architecture_format: str
     __architecture: 'YOLO11' or 'YOLOv8' or 'YOLOv5'
 
     pre_process_time: int
@@ -41,15 +42,18 @@ class Detector:
         output: np.ndarray
 
         start_ts = time.time()
-        input = Detector.__architecture.pre_process(image=image)
+        if Detector.__architecture_format == "litert":
+            input = Detector.__architecture.pre_process(image=image, litert_model=True)
+        elif Detector.__architecture_format == "onnx":
+            input = Detector.__architecture.pre_process(image=image, litert_model=False)
         Detector.pre_process_time = int((time.time() - start_ts) * 1000)
         
         start_ts = time.time()
-        if Detector.__architecture_type == "tflite":
+        if Detector.__architecture_format == "litert":
             output = LiteRT.forward(input=input)
 
-        elif Detector.__architecture_type == "onnx":
-            pass
+        elif Detector.__architecture_format == "onnx":
+            output = OnnxRT.forward(input=input)
         Detector.inference_time = int((time.time() - start_ts) * 1000)
 
         start_ts = time.time()
@@ -67,12 +71,14 @@ class Detector:
 
         if ".tflite" in model_path:
             LiteRT.load(model_path=model_path)
-            Detector.__architecture_type = "tflite"
+            Detector.__architecture_format = "litert"
             input_details = LiteRT.input_details
             
 
         elif ".onnx" in model_path:
-            pass
+            OnnxRT.load(model_path=model_path)
+            Detector.__architecture_format = "onnx"
+            input_details = OnnxRT.input_details
 
         return input_details
     

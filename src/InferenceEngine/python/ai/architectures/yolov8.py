@@ -23,10 +23,12 @@ class YOLOv8:
         self.confidence_thresh = confidence_thresh
         self.iou_thresh = iou_thresh
 
-    def pre_process(self, image: np.ndarray) -> np.ndarray:
-       
+    def pre_process(self, image: np.ndarray, litert_model: bool = True) -> np.ndarray:
+                
         input_image: np.ndarray = ImagePreprocessing.format(
-            images=[image], input_shape=self.input_details["shape"][1:3]
+            images=[image], 
+            input_shape=self.input_details["shape"][1:3],
+            litert_model=litert_model
         )
 
         if self.input_details["type"] != np.float32:
