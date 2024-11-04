@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 from typing import Tuple, List, Dict
 from image.preprocessing import ImagePreprocessing
 from detection.postprocessing import DetectionPostprocessing
@@ -23,13 +24,25 @@ class YOLO11:
         self.confidence_thresh = confidence_thresh
         self.iou_thresh = iou_thresh
 
-    def pre_process(self, image: np.ndarray, litert_model: bool = True) -> np.ndarray:
-                
-        input_image: np.ndarray = ImagePreprocessing.format(
-            images=[image], 
-            input_shape=self.input_details["shape"][1:3],
-            litert_model=litert_model
-        )
+    def pre_process(self, image: np.ndarray, litert_model: bool = True, opencvrt_inferencer: bool = False) -> np.ndarray:
+        
+        if opencvrt_inferencer:
+            input_image = image
+            input_image = cv2.dnn.blobFromImage(
+                input_image, 
+                scalefactor=1.0/255.0, 
+                size=self.input_details["shape"][1:3], 
+                mean=self.input_details["mean"], 
+                swapRB=True, 
+                crop=False
+            )
+
+        else:
+            input_image: np.ndarray = ImagePreprocessing.format(
+                images=[image], 
+                input_shape=self.input_details["shape"][1:3],
+                litert_model=litert_model
+            )
 
         if self.input_details["type"] != np.float32:
             input_image = ImagePreprocessing.quantize(

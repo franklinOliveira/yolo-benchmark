@@ -1,5 +1,6 @@
 from ai.inferencers.litert import LiteRT
 from ai.inferencers.onnxrt import OnnxRT
+from ai.inferencers.opencvrt import OpencvRT
 from ai.architectures.yolov5 import YOLOv5
 from ai.architectures.yolov8 import YOLOv8
 from ai.architectures.yolo11 import YOLO11
@@ -21,8 +22,12 @@ class Detector:
         score_thresh: float,
         confidence_thresh: float,
         iou_thresh: float,
+        onnx_inferencer: str
     ):
-        input_details: dict = Detector.__start_inferencer(model_path=model_path)
+        input_details: dict = Detector.__start_inferencer(
+            model_path=model_path,
+            onnx_inferencer=onnx_inferencer
+        )
 
         Detector.__load_architecture(
             model_path=model_path,
@@ -45,7 +50,10 @@ class Detector:
         if Detector.__architecture_format == "litert":
             input = Detector.__architecture.pre_process(image=image, litert_model=True)
         elif Detector.__architecture_format == "onnx":
-            input = Detector.__architecture.pre_process(image=image, litert_model=False)
+            if Detector.__onnx_inferencer == "onnxrt":
+                input = Detector.__architecture.pre_process(image=image, litert_model=False)
+            elif Detector.__onnx_inferencer == "opencvrt":
+                input = Detector.__architecture.pre_process(image=image, litert_model=False, opencvrt_inferencer=True)
         Detector.pre_process_time = int((time.time() - start_ts) * 1000)
         
         start_ts = time.time()
@@ -53,7 +61,11 @@ class Detector:
             output = LiteRT.forward(input=input)
 
         elif Detector.__architecture_format == "onnx":
-            output = OnnxRT.forward(input=input)
+            if Detector.__onnx_inferencer == "onnxrt":
+                output = OnnxRT.forward(input=input)
+            elif Detector.__onnx_inferencer == "opencvrt":
+                output = OpencvRT.forward(input=input)
+
         Detector.inference_time = int((time.time() - start_ts) * 1000)
 
         start_ts = time.time()
@@ -66,7 +78,7 @@ class Detector:
         return boxes, classes_ids, scores
 
     @staticmethod
-    def __start_inferencer(model_path: str) -> dict:
+    def __start_inferencer(model_path: str, onnx_inferencer: str) -> dict:
         input_details: dict = dict()
 
         if ".tflite" in model_path:
@@ -74,11 +86,16 @@ class Detector:
             Detector.__architecture_format = "litert"
             input_details = LiteRT.input_details
             
-
         elif ".onnx" in model_path:
-            OnnxRT.load(model_path=model_path)
             Detector.__architecture_format = "onnx"
-            input_details = OnnxRT.input_details
+            Detector.__onnx_inferencer = onnx_inferencer
+
+            if onnx_inferencer == "onnxrt":
+                OnnxRT.load(model_path=model_path)
+                input_details = OnnxRT.input_details
+            if onnx_inferencer == "opencvrt":
+                OpencvRT.load(model_path=model_path)
+                input_details = OpencvRT.input_details
 
         return input_details
     

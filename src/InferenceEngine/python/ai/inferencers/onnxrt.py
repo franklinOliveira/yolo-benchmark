@@ -37,12 +37,16 @@ class OnnxRT:
         OnnxRT.input_details["name"] = input_meta.name
         OnnxRT.input_details["type"] = OnnxRT.__map_onnx_dtype(input_meta.type)
         OnnxRT.input_details["shape"] = np.array(input_meta.shape)[[0, 2, 3, 1]]
+        OnnxRT.input_details["scale"] = 1.0
+        OnnxRT.input_details["zero_point"] = 0.0
 
     @staticmethod
     def __load_output_details() -> None:
         output_meta = OnnxRT.__inferencer.get_outputs()[0]
         OnnxRT.output_details["name"] = output_meta.name
         OnnxRT.output_details["type"] = OnnxRT.__map_onnx_dtype(output_meta.type)
+        OnnxRT.output_details["scale"] = 1.0
+        OnnxRT.output_details["zero_point"] = 0.0
 
     @staticmethod
     def __map_onnx_dtype(onnx_dtype: str) -> type:
