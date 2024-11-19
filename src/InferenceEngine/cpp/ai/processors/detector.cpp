@@ -20,12 +20,18 @@ namespace Detector
 
     std::vector<Detection> run(cv::Mat image)
     {
+        cv::Mat outputs;
         std::vector<Detection> detections;
 
         auto startTs = std::chrono::high_resolution_clock::now();
         cv::Mat input = Detector::architecture.preProcess(image, true, false);
         auto duration = std::chrono::high_resolution_clock::now() - (startTs);
         Detector::preprocessTime = (int)std::chrono::duration<double, std::milli>(duration).count();
+
+        startTs = std::chrono::high_resolution_clock::now();
+        outputs = LiteRT::forward(input);
+        duration = std::chrono::high_resolution_clock::now() - (startTs);
+        Detector::inferenceTime = (int)std::chrono::duration<double, std::milli>(duration).count();
 
         return detections;
     }

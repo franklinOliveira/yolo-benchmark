@@ -8,8 +8,6 @@ namespace LiteRT
     static std::unique_ptr<tflite::FlatBufferModel> model;
     static tflite::ops::builtin::BuiltinOpResolver resolver;
     static std::unique_ptr<tflite::Interpreter> interpreter;
-    static int8_t *inputBuffer;
-    static int8_t *outputBuffer;
 
     nlohmann::json inputDetails;
     nlohmann::json outputDetails;
@@ -23,6 +21,43 @@ namespace LiteRT
         LiteRT::loadOutputDetails();
     }
 
+    cv::Mat forward(cv::Mat image)
+    {
+        const int inputSize = LiteRT::inputDetails["size"].get<int>();
+        int8_t *inputBuffer = LiteRT::interpreter->typed_input_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
+        std::memcpy(inputBuffer, reinterpret_cast<int8_t *>(image.data), inputSize * sizeof(int8_t));
+
+        if (LiteRT::interpreter->Invoke() != kTfLiteOk)
+        {
+            return cv::Mat();
+        }
+
+        const int outputSize = LiteRT::outputDetails["size"].get<int>();
+        int8_t *outputBuffer = LiteRT::interpreter->typed_output_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
+        cv::Mat outputs = cv::Mat(3, outputSize, CV_32F);
+
+        if (LiteRT::outputDetails["type"] == "INT8")
+        {   
+            const int zeroPoint = LiteRT::outputDetails["zeroPoint"].get<int>();
+            const float scale = LiteRT::outputDetails["scale"].get<float>();
+            
+            for (size_t i = 0; i < outputs.total(); ++i)
+            {
+                outputs.at<float>(i) = (static_cast<float>(outputBuffer[i]) - ((float)zeroPoint)) * scale;
+            }
+        }
+
+        cv::Size inputShape(LiteRT::inputDetails["shape"][2], LiteRT::inputDetails["shape"][1]);
+        for (int i = 0; i < outputs.size[2]; ++i)
+        {
+            outputs.at<float>(0, 0, i) *= inputShape.width;
+            outputs.at<float>(0, 2, i) *= inputShape.width;
+            outputs.at<float>(0, 1, i) *= inputShape.height;
+            outputs.at<float>(0, 3, i) *= inputShape.height;
+        }
+
+        return outputs;
+    }
 
     static void loadInputDetails(void)
     {
@@ -38,10 +73,9 @@ namespace LiteRT
             LiteRT::inputDetails["type"] = "INT8";
         }
         std::vector<int> shape = {
-            inputTensor->dims->data[0], 
-            inputTensor->dims->data[1], 
-            inputTensor->dims->data[2]
-        };
+            inputTensor->dims->data[0],
+            inputTensor->dims->data[1],
+            inputTensor->dims->data[2]};
         LiteRT::inputDetails["size"] = inputTensor->bytes;
         LiteRT::inputDetails["shape"] = shape;
         LiteRT::inputDetails["scale"] = inputTensor->params.scale;

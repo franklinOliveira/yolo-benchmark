@@ -16,6 +16,7 @@ int main()
     Detector::run(image);
 
     std::cout << "Preprocessing time: " << Detector::preprocessTime << "ms" << std::endl;
+    std::cout << "Inference time: " << Detector::inferenceTime << "ms" << std::endl;
 
     return 0;
 }
