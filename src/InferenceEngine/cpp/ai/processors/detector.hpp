@@ -1,9 +1,10 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <string>
+#include <chrono>
 
 #include "litert.hpp"
-#include "uyolo.hpp"
+#include "ultralyticsyolo.hpp"
 
 namespace Detector
 {
@@ -13,6 +14,6 @@ namespace Detector
     extern int postprocessTime;
 
     void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh, std::string onnxInferencer);
-    //std::vector<Detection> run(cv::Mat image);
+    std::vector<Detection> run(cv::Mat image);
 
 }

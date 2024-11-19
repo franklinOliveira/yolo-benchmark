@@ -16,6 +16,6 @@ public:
 
     UltralyticsYOLO();
     UltralyticsYOLO(nlohmann::json inputDetails, float scoreThresh, float confidenceThresh, float iouThresh);
-    cv::Mat preProcess(cv::Mat image, bool litertModel, bool opencvInferencer);
+    cv::Mat preProcess(cv::Mat image, bool litertModel, bool opencvrtInferencer);
     
 };

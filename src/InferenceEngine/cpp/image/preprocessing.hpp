@@ -3,7 +3,6 @@
 
 namespace ImagePreprocessing
 {
-
-    std::vector<cv::Mat> format(std::vector<cv::Mat> images, const cv::Size input_shape, bool litert_model = true);
-
+    cv::Mat format(cv::Mat image, const cv::Size inputShape, bool litertModel);
+    cv::Mat quantize(cv::Mat image, float scale, float zeroPoint, std::string type);
 }

@@ -18,6 +18,18 @@ namespace Detector
         loadArchitecture(modelPath, inputDetails, scoreThresh, confidenceThresh, iouThresh);
     }
 
+    std::vector<Detection> run(cv::Mat image)
+    {
+        std::vector<Detection> detections;
+
+        auto startTs = std::chrono::high_resolution_clock::now();
+        cv::Mat input = Detector::architecture.preProcess(image, true, false);
+        auto duration = std::chrono::high_resolution_clock::now() - (startTs);
+        Detector::preprocessTime = (int)std::chrono::duration<double, std::milli>(duration).count();
+
+        return detections;
+    }
+
     static nlohmann::json startInferencer(std::string modelPath, std::string onnxInferencer)
     {
         nlohmann::json inputDetails;
@@ -27,7 +39,6 @@ namespace Detector
             LiteRT::load(modelPath);
             inputDetails = LiteRT::inputDetails;
             Detector::architectureFormat = "litert";
-            std::cout << "Inferencer started" << std::endl;
         }
 
         return inputDetails;
@@ -40,7 +51,6 @@ namespace Detector
             (modelPath.find("yolo11") != std::string::npos))
         {
             Detector::architecture = UltralyticsYOLO(inputDetails, scoreThresh, confidenceThresh, iouThresh);
-            std::cout << "Architecture loaded" << std::endl;
         }
     }
 

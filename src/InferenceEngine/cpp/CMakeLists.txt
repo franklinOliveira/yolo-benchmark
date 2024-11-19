@@ -28,7 +28,7 @@ include_directories(
 )
 
 set(SOURCE_FILES 
-    ai/architectures/uyolo.cpp
+    ai/architectures/ultralyticsyolo.cpp
     ai/inferencers/litert.cpp
     ai/processors/detector.cpp
     image/preprocessing.cpp

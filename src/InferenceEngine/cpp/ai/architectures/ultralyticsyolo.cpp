@@ -1,15 +1,15 @@
-#include "uyolo.hpp"
+#include "ultralyticsyolo.hpp"
 
 UltralyticsYOLO::UltralyticsYOLO(){}
 UltralyticsYOLO::UltralyticsYOLO(nlohmann::json inputDetails, float scoreThresh, float confidenceThresh, float iouThresh) : inputDetails(inputDetails), scoreThresh(scoreThresh), confidenceThresh(confidenceThresh), iouThresh(iouThresh) {}
 
-cv::Mat UltralyticsYOLO::preProcess(cv::Mat image, bool litertModel, bool opencvInferencer)
+cv::Mat UltralyticsYOLO::preProcess(cv::Mat image, bool litertModel, bool opencvrtInferencer)
 {
     cv::Mat inputImage;
     image.copyTo(inputImage);
     cv::Size inputSize(this->inputDetails["shape"][2], this->inputDetails["shape"][1]);
 
-    if (opencvInferencer)
+    if (opencvrtInferencer)
     {
         inputImage = cv::dnn::blobFromImage(
             inputImage, 
@@ -23,7 +23,18 @@ cv::Mat UltralyticsYOLO::preProcess(cv::Mat image, bool litertModel, bool opencv
 
     else
     {
-        std::vector<cv::Mat> inputImages = {inputImage};
-        inputImage = ImagePreprocessing::format(inputImages, inputSize, litertModel)[0];
+        inputImage = ImagePreprocessing::format(inputImage, inputSize, litertModel);
     }
+
+    if (this->inputDetails["type"] == "INT8")
+    {
+        inputImage = ImagePreprocessing::quantize(
+            inputImage,
+            this->inputDetails["scale"],
+            this->inputDetails["zeroPoint"],
+            this->inputDetails["type"]
+        );
+    }
+
+    return inputImage;
 }
