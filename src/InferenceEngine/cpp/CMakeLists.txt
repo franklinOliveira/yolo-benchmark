@@ -23,6 +23,7 @@ include_directories(
     ai/architectures
     ai/inferencers
     ai/processors
+    detection
     image
     model
 )
@@ -30,7 +31,9 @@ include_directories(
 set(SOURCE_FILES 
     ai/architectures/ultralyticsyolo.cpp
     ai/inferencers/litert.cpp
+    ai/inferencers/opencvrt.cpp
     ai/processors/detector.cpp
+    detection/postprocessing.cpp
     image/preprocessing.cpp
     model/detection.cpp
     main.cpp

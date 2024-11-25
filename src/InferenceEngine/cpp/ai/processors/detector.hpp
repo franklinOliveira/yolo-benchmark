@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "litert.hpp"
+#include "opencvrt.hpp"
 #include "ultralyticsyolo.hpp"
 
 namespace Detector

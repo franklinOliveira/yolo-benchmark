@@ -2,19 +2,32 @@
 
 namespace ImagePreprocessing
 {
-    cv::Mat format(cv::Mat image, const cv::Size inputShape, bool litertModel)
+    cv::Mat format(cv::Mat image, const nlohmann::json formatDetails)
     {
-        cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-        cv::resize(image, image, inputShape, cv::INTER_CUBIC);
-        int totalPixels = image.cols * image.rows * image.channels();
+        std::string modelInferencer = formatDetails["inferencer"].get<std::string>();
+        std::vector<int> sizeVec = formatDetails["size"].get<std::vector<int>>();
+        cv::Size inputSize(sizeVec[0], sizeVec[1]);
+        cv::Mat formatedImage;
 
-        cv::Mat formatedImage(image.rows, image.cols, CV_32FC3);
-        float *formatedData = reinterpret_cast<float *>(formatedImage.data);
+        if (modelInferencer == "opencvrt")
+        {   
+            formatedImage = cv::dnn::blobFromImage(
+                image,
+                (1.0 / 255.0),
+                inputSize,
+                cv::Scalar(),
+                true,
+                false);
+        }
 
-        for (int i = 0; i < totalPixels; i++)
+        else if (modelInferencer == "litert")
         {
-            float normalizedValue = ((float)image.data[i] / 255.0);
-            formatedData[i] = normalizedValue;
+            cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
+            cv::resize(image, image, inputSize, cv::INTER_CUBIC);
+            int totalPixels = image.cols * image.rows * image.channels();
+
+            formatedImage = cv::Mat(image.rows, image.cols, CV_32FC3);
+            float *formatedData = reinterpret_cast<float *>(formatedImage.data);
         }
 
         return formatedImage;

@@ -5,7 +5,7 @@ namespace Detector
     static nlohmann::json startInferencer(std::string modelPath, std::string onnxInferencer);
     static void loadArchitecture(std::string modelPath, nlohmann::json inputDetails, float scoreThresh, float confidenceThresh, float iouThresh);
 
-    static std::string architectureFormat;
+    static std::string modelInferencer;
     static UltralyticsYOLO architecture;
 
     int preprocessTime;
@@ -24,14 +24,28 @@ namespace Detector
         std::vector<Detection> detections;
 
         auto startTs = std::chrono::high_resolution_clock::now();
-        cv::Mat input = Detector::architecture.preProcess(image, true, false);
+        cv::Mat input = Detector::architecture.preProcess(image);
         auto duration = std::chrono::high_resolution_clock::now() - (startTs);
         Detector::preprocessTime = (int)std::chrono::duration<double, std::milli>(duration).count();
 
         startTs = std::chrono::high_resolution_clock::now();
-        outputs = LiteRT::forward(input);
+        if (Detector::modelInferencer == "litert")
+        {
+            outputs = LiteRT::forward(input);
+        }
+
+        else if (Detector::modelInferencer == "opencvrt")
+        {
+            outputs = OpencvRT::forward(input);
+        }
+
         duration = std::chrono::high_resolution_clock::now() - (startTs);
         Detector::inferenceTime = (int)std::chrono::duration<double, std::milli>(duration).count();
+
+        startTs = std::chrono::high_resolution_clock::now();
+        detections = Detector::architecture.postProcess(outputs, image);
+        duration = std::chrono::high_resolution_clock::now() - (startTs);
+        Detector::postprocessTime = (int)std::chrono::duration<double, std::milli>(duration).count();
 
         return detections;
     }
@@ -44,7 +58,14 @@ namespace Detector
         {
             LiteRT::load(modelPath);
             inputDetails = LiteRT::inputDetails;
-            Detector::architectureFormat = "litert";
+            Detector::modelInferencer = "litert";
+        }
+
+        else if ((modelPath.find(".onnx") != std::string::npos) && (onnxInferencer == "opencvrt"))
+        {
+            OpencvRT::load(modelPath);
+            inputDetails = OpencvRT::inputDetails;
+            Detector::modelInferencer = "opencvrt";
         }
 
         return inputDetails;
@@ -56,7 +77,7 @@ namespace Detector
             (modelPath.find("yolov8") != std::string::npos) || 
             (modelPath.find("yolo11") != std::string::npos))
         {
-            Detector::architecture = UltralyticsYOLO(inputDetails, scoreThresh, confidenceThresh, iouThresh);
+            Detector::architecture = UltralyticsYOLO(inputDetails, Detector::modelInferencer, scoreThresh, confidenceThresh, iouThresh);
         }
     }
 
