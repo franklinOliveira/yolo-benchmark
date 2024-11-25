@@ -24,10 +24,7 @@ namespace ImagePreprocessing
         {
             cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
             cv::resize(image, image, inputSize, cv::INTER_CUBIC);
-            int totalPixels = image.cols * image.rows * image.channels();
-
-            formatedImage = cv::Mat(image.rows, image.cols, CV_32FC3);
-            float *formatedData = reinterpret_cast<float *>(formatedImage.data);
+            formatedImage = image;
         }
 
         return formatedImage;
@@ -41,10 +38,14 @@ namespace ImagePreprocessing
 
         for (int i = 0; i < totalPixels; i++)
         {
-            int8_t quantizedValue = ((float)image.data[i] / scale) + zeroPoint;
+            uint8_t rgbValue = static_cast<uint8_t>(image.data[i]);
+            float normalizedValue = static_cast<float>(rgbValue) / 255.0;
+            int8_t quantizedValue = (normalizedValue / scale) + zeroPoint;
             quantizedData[i] = quantizedValue;
         }
 
         return quantizedImage;
     }
+
+    //cv::Mat normalize(cv::Mat image, ...)
 }

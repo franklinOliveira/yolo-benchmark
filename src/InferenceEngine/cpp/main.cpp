@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
         int detectionTime = Detector::preprocessTime + Detector::inferenceTime + Detector::postprocessTime;
         detectionTimeSum += detectionTime;
 
-        std::cout << "Detection #" << (i + 1) << " executed in " << detectionTime << "ms" << std::endl;
+        std::cout << "Detection #" << (i + 1) << " executed in " << detectionTime << "ms\n" << std::endl;
     }
     detectionTimeAvg = detectionTimeSum / nExecutions;
 

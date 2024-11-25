@@ -27,11 +27,6 @@ namespace LiteRT
         int8_t *inputBuffer = LiteRT::interpreter->typed_input_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
         std::memcpy(inputBuffer, reinterpret_cast<int8_t *>(image.data), inputSize * sizeof(int8_t));
 
-        //std::cout << "\nInput size: " << inputSize << std::endl;
-        //for (int i = 0; i < 10; i++)
-        //    std::cout << (int) inputBuffer[i] << " ";
-        //std::cout << std::endl;
-
         if (LiteRT::interpreter->Invoke() != kTfLiteOk)
         {
             return cv::Mat();
@@ -44,11 +39,6 @@ namespace LiteRT
         cv::Mat outputs = cv::Mat(3, outputsSize, CV_32F);
 
         int8_t *outputBuffer = LiteRT::interpreter->typed_output_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
-        
-        //std::cout << "\nOutput size: " << outputs.total() << std::endl;
-        //for (int i = 0; i < 10; i++)
-        //    std::cout << (int) outputBuffer[i] << " ";
-        //std::cout << std::endl;
         
         if (LiteRT::outputDetails["type"] == "INT8")
         {   
@@ -69,11 +59,6 @@ namespace LiteRT
             outputs.at<float>(0, 1, i) *= inputShape.height;
             outputs.at<float>(0, 3, i) *= inputShape.height;
         }
-
-        //std::cout << "\nOutputs size: " << outputs.total() << std::endl;
-        //for (int i = 0; i < 10; i++)
-        //    std::cout << outputs.at<float>(i) << " ";
-        //std::cout << std::endl;
 
         return outputs;
     }

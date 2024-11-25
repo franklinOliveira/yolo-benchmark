@@ -27,6 +27,10 @@ cv::Mat UltralyticsYOLO::preProcess(cv::Mat image)
             this->inputDetails["zeroPoint"],
             this->inputDetails["type"]);
     }
+    else
+    {
+        //TODO ImagePreprocessing::normalize 
+    }
 
     return inputImage;
 }
