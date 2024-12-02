@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     // Run the detector
     int detectionTimeSum = 0;
     float detectionTimeAvg = 0.0;
-    int nExecutions = 100;
+    int nExecutions = 2;
     for (int i = 0; i < nExecutions; i++)
     {
         Detector::run(image);

@@ -47,5 +47,19 @@ namespace ImagePreprocessing
         return quantizedImage;
     }
 
-    //cv::Mat normalize(cv::Mat image, ...)
+    cv::Mat normalize(cv::Mat image)
+    {
+        cv::Mat normalizedImage(image.rows, image.cols, CV_8UC3);
+        float *normalizedData = reinterpret_cast<float *>(normalizedImage.data);
+        int totalPixels = image.cols * image.rows * image.channels();
+
+        for (int i = 0; i < totalPixels; i++)
+        {
+            uint8_t rgbValue = static_cast<uint8_t>(image.data[i]);
+            float normalizedValue = static_cast<float>(rgbValue) / 255.0;
+            normalizedData[i] = normalizedValue;
+        }   
+
+        return normalizedImage;
+    }
 }

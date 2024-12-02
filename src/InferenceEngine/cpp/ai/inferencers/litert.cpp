@@ -24,30 +24,45 @@ namespace LiteRT
     cv::Mat forward(cv::Mat image)
     {
         const int inputSize = LiteRT::inputDetails["size"].get<int>();
-        int8_t *inputBuffer = LiteRT::interpreter->typed_input_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
-        std::memcpy(inputBuffer, reinterpret_cast<int8_t *>(image.data), inputSize * sizeof(int8_t));
-
-        if (LiteRT::interpreter->Invoke() != kTfLiteOk)
-        {
-            return cv::Mat();
-        }
-
         const int outputBatches = LiteRT::outputDetails["batchs"].get<int>();
         const int outputRows = LiteRT::outputDetails["rows"].get<int>();
         const int outputColumns = LiteRT::outputDetails["columns"].get<int>();
         int outputsSize[] = {outputBatches, outputRows, outputColumns};
         cv::Mat outputs = cv::Mat(3, outputsSize, CV_32F);
 
-        int8_t *outputBuffer = LiteRT::interpreter->typed_output_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
+        if (LiteRT::inputDetails["type"] == "INT8")
+        { 
+            int8_t *inputBuffer = LiteRT::interpreter->typed_input_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
+            std::memcpy(inputBuffer, reinterpret_cast<int8_t *>(image.data), inputSize * sizeof(int8_t));
+        }
+        else if (LiteRT::inputDetails["type"] == "FLOAT32")
+        {
+            float *inputBuffer = LiteRT::interpreter->typed_input_tensor<float>(LiteRT::interpreter->inputs()[0]);
+            std::memcpy(inputBuffer, reinterpret_cast<float *>(image.data), inputSize * sizeof(float));
+        }
+
+        if (LiteRT::interpreter->Invoke() != kTfLiteOk)
+        {
+            return cv::Mat();
+        }
         
         if (LiteRT::outputDetails["type"] == "INT8")
         {   
+            int8_t *outputBuffer = LiteRT::interpreter->typed_output_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
             const int zeroPoint = LiteRT::outputDetails["zeroPoint"].get<int>();
             const float scale = LiteRT::outputDetails["scale"].get<float>();
             
             for (size_t i = 0; i < outputs.total(); ++i)
             {
                 outputs.at<float>(i) = (static_cast<float>(outputBuffer[i]) - ((float)zeroPoint)) * scale;
+            }
+        }
+        else if (LiteRT::inputDetails["type"] == "FLOAT32")
+        {
+            float *outputBuffer = LiteRT::interpreter->typed_output_tensor<float>(LiteRT::interpreter->inputs()[0]);            
+            for (size_t i = 0; i < outputs.total(); ++i)
+            {
+                outputs.at<float>(i) = static_cast<float>(outputBuffer[i]);
             }
         }
 

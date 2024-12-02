@@ -19,19 +19,22 @@ cv::Mat UltralyticsYOLO::preProcess(cv::Mat image)
 
     inputImage = ImagePreprocessing::format(inputImage, this->formatDetails);
 
-    if (this->inputDetails["type"] == "INT8")
+    if (this->formatDetails["inferencer"] == "litert")
     {
-        inputImage = ImagePreprocessing::quantize(
-            inputImage,
-            this->inputDetails["scale"],
-            this->inputDetails["zeroPoint"],
-            this->inputDetails["type"]);
+        if (this->inputDetails["type"] == "INT8")
+        {
+            inputImage = ImagePreprocessing::quantize(
+                inputImage,
+                this->inputDetails["scale"],
+                this->inputDetails["zeroPoint"],
+                this->inputDetails["type"]
+            );
+        }
+        else if (this->inputDetails["type"] == "FLOAT32")
+        {
+            inputImage = ImagePreprocessing::normalize(inputImage);
+        }
     }
-    else
-    {
-        //TODO ImagePreprocessing::normalize 
-    }
-
     return inputImage;
 }
 
