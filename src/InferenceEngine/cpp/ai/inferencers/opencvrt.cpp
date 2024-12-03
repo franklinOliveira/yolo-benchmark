@@ -15,13 +15,14 @@ namespace OpencvRT
         OpencvRT::interpreter = cv::dnn::readNetFromONNX(modelPath);
         OpencvRT::interpreter.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         OpencvRT::interpreter.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+        cv::setNumThreads(cv::getNumberOfCPUs());
 
         OpencvRT::loadInputDetails();
         OpencvRT::loadOutputDetails();
         
     }
 
-    cv::Mat forward(cv::Mat image)
+    cv::Mat forward(const cv::Mat& image)
     {
         std::vector<cv::Mat> outputs;
         OpencvRT::interpreter.setInput(image);

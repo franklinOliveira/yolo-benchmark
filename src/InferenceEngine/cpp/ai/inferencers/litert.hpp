@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include <tensorflow/lite/interpreter.h>
 #include <tensorflow/lite/model.h>
@@ -14,5 +15,5 @@ namespace LiteRT
     extern nlohmann::json outputDetails;
 
     void load(std::string modelPath);
-    cv::Mat forward(cv::Mat input);
+    cv::Mat forward(const cv::Mat& image);
 }

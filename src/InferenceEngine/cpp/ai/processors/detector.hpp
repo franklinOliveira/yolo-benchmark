@@ -15,6 +15,6 @@ namespace Detector
     extern int postprocessTime;
 
     void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh, std::string onnxInferencer);
-    std::vector<Detection> run(cv::Mat image);
+    std::vector<Detection> run(const cv::Mat& image);
 
 }

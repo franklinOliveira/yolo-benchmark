@@ -4,7 +4,7 @@
 
 namespace ImagePreprocessing
 {
-    cv::Mat format(cv::Mat image, const nlohmann::json formatDetails);
-    cv::Mat quantize(cv::Mat image, float scale, float zeroPoint, std::string type);
-    cv::Mat normalize(cv::Mat image);
+    cv::Mat format(const cv::Mat& image, const nlohmann::json formatDetails);
+    cv::Mat quantize(const cv::Mat& image, float scale, float zeroPoint, std::string type);
+    cv::Mat normalize(const cv::Mat& image);
 }

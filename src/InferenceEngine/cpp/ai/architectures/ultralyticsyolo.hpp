@@ -33,6 +33,6 @@ public:
     UltralyticsYOLO();
     UltralyticsYOLO(nlohmann::json inputDetails, std::string modelInferencer, float scoreThresh, float confidenceThresh, float iouThresh);
     
-    cv::Mat preProcess(cv::Mat image);
-    std::vector<Detection> postProcess(cv::Mat outputs, cv::Mat image);
+    cv::Mat preProcess(const cv::Mat& image);
+    std::vector<Detection> postProcess(cv::Mat outputs, const cv::Mat& image);
 };

@@ -33,7 +33,10 @@ class OpencvRT:
             RuntimeError: If the model file path is invalid or loading fails.
         """
         OpencvRT.__inferencer = cv2.dnn.readNetFromONNX(model_path)
-        
+        OpencvRT.__inferencer.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        OpencvRT.__inferencer.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+        cv2.setNumThreads(cv2.getNumberOfCPUs())
+
         OpencvRT.__load_input_details()
         OpencvRT.__load_output_details()
 

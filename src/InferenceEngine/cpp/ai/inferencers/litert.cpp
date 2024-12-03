@@ -16,12 +16,13 @@ namespace LiteRT
     {
         LiteRT::model = tflite::FlatBufferModel::BuildFromFile(modelPath.c_str());
         tflite::InterpreterBuilder(*LiteRT::model, LiteRT::resolver)(&LiteRT::interpreter);
+        LiteRT::interpreter->SetNumThreads(std::thread::hardware_concurrency());
         LiteRT::interpreter->AllocateTensors();
         LiteRT::loadInputDetails();
         LiteRT::loadOutputDetails();
     }
 
-    cv::Mat forward(cv::Mat image)
+    cv::Mat forward(const cv::Mat& image)
     {
         const int inputSize = LiteRT::inputDetails["size"].get<int>();
         const int outputBatches = LiteRT::outputDetails["batchs"].get<int>();
@@ -38,7 +39,7 @@ namespace LiteRT
         else if (LiteRT::inputDetails["type"] == "FLOAT32")
         {
             float *inputBuffer = LiteRT::interpreter->typed_input_tensor<float>(LiteRT::interpreter->inputs()[0]);
-            std::memcpy(inputBuffer, reinterpret_cast<float *>(image.data), inputSize * sizeof(float));
+            std::memcpy(inputBuffer, reinterpret_cast<float *>(image.data), inputSize * sizeof(int8_t));
         }
 
         if (LiteRT::interpreter->Invoke() != kTfLiteOk)

@@ -12,13 +12,9 @@ UltralyticsYOLO::UltralyticsYOLO(nlohmann::json inputDetails, std::string modelI
     }
 }
 
-cv::Mat UltralyticsYOLO::preProcess(cv::Mat image)
+cv::Mat UltralyticsYOLO::preProcess(const cv::Mat& image)
 {
-    cv::Mat inputImage;
-    image.copyTo(inputImage);
-
-    inputImage = ImagePreprocessing::format(inputImage, this->formatDetails);
-
+    cv::Mat inputImage = ImagePreprocessing::format(image, this->formatDetails);
     if (this->formatDetails["inferencer"] == "litert")
     {
         if (this->inputDetails["type"] == "INT8")
@@ -27,18 +23,18 @@ cv::Mat UltralyticsYOLO::preProcess(cv::Mat image)
                 inputImage,
                 this->inputDetails["scale"],
                 this->inputDetails["zeroPoint"],
-                this->inputDetails["type"]
-            );
+                this->inputDetails["type"]);
         }
         else if (this->inputDetails["type"] == "FLOAT32")
         {
             inputImage = ImagePreprocessing::normalize(inputImage);
         }
     }
+
     return inputImage;
 }
 
-std::vector<Detection> UltralyticsYOLO::postProcess(cv::Mat outputs, cv::Mat image)
+std::vector<Detection> UltralyticsYOLO::postProcess(cv::Mat outputs, const cv::Mat& image)
 {
     std::vector<int> predictedClasses;
     std::vector<float> predictedScores;
@@ -86,5 +82,10 @@ std::vector<Detection> UltralyticsYOLO::postProcess(cv::Mat outputs, cv::Mat ima
         data += dimensions;
     }
 
-    return ImagePostprocessing::applyNMS(predictedClasses, predictedScores, predictedBoxes, UltralyticsYOLO::confidenceThresh, UltralyticsYOLO::iouThresh);
+    return ImagePostprocessing::applyNMS(
+        predictedClasses,
+        predictedScores,
+        predictedBoxes,
+        UltralyticsYOLO::confidenceThresh,
+        UltralyticsYOLO::iouThresh);
 }

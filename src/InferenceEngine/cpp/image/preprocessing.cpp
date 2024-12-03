@@ -2,7 +2,7 @@
 
 namespace ImagePreprocessing
 {
-    cv::Mat format(cv::Mat image, const nlohmann::json formatDetails)
+    cv::Mat format(const cv::Mat& image, const nlohmann::json formatDetails)
     {
         std::string modelInferencer = formatDetails["inferencer"].get<std::string>();
         std::vector<int> sizeVec = formatDetails["size"].get<std::vector<int>>();
@@ -22,15 +22,15 @@ namespace ImagePreprocessing
 
         else if (modelInferencer == "litert")
         {
-            cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-            cv::resize(image, image, inputSize, cv::INTER_CUBIC);
-            formatedImage = image;
+            image.copyTo(formatedImage);
+            cv::cvtColor(formatedImage, formatedImage, cv::COLOR_BGR2RGB);
+            cv::resize(formatedImage, formatedImage, inputSize, cv::INTER_CUBIC);
         }
 
         return formatedImage;
     }
 
-    cv::Mat quantize(cv::Mat image, float scale, float zeroPoint, std::string type)
+    cv::Mat quantize(const cv::Mat& image, float scale, float zeroPoint, std::string type)
     {
         cv::Mat quantizedImage(image.rows, image.cols, CV_8UC3);
         int8_t *quantizedData = reinterpret_cast<int8_t *>(quantizedImage.data);
@@ -47,9 +47,9 @@ namespace ImagePreprocessing
         return quantizedImage;
     }
 
-    cv::Mat normalize(cv::Mat image)
+    cv::Mat normalize(const cv::Mat& image)
     {
-        cv::Mat normalizedImage(image.rows, image.cols, CV_8UC3);
+        cv::Mat normalizedImage(image.rows, image.cols, CV_32FC3);
         float *normalizedData = reinterpret_cast<float *>(normalizedImage.data);
         int totalPixels = image.cols * image.rows * image.channels();
 
@@ -59,7 +59,7 @@ namespace ImagePreprocessing
             float normalizedValue = static_cast<float>(rgbValue) / 255.0;
             normalizedData[i] = normalizedValue;
         }   
-
+        
         return normalizedImage;
     }
 }

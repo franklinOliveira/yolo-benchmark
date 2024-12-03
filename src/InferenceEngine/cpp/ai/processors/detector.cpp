@@ -18,7 +18,7 @@ namespace Detector
         loadArchitecture(modelPath, inputDetails, scoreThresh, confidenceThresh, iouThresh);
     }
 
-    std::vector<Detection> run(cv::Mat image)
+    std::vector<Detection> run(const cv::Mat& image)
     {
         cv::Mat outputs;
         std::vector<Detection> detections;

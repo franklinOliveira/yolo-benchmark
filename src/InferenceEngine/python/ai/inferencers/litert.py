@@ -1,4 +1,6 @@
 import numpy as np
+import multiprocessing
+
 try:
     from tflite_runtime import interpreter as tflite
     from tflite_runtime.interpreter import load_delegate
@@ -49,6 +51,7 @@ class LiteRT:
         else:
             LiteRT.__inferencer = tf.lite.Interpreter(model_path=model_path)
 
+        LiteRT.__inferencer.SetNumThreads(multiprocessing.cpu_count())
         LiteRT.__inferencer.allocate_tensors()
         LiteRT.__load_input_details()
         LiteRT.__load_output_details()
