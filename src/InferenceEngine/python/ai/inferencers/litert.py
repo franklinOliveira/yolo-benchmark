@@ -40,6 +40,7 @@ class LiteRT:
         Raises:
             RuntimeError: If the model file path is invalid or the interpreter fails to load.
         """
+        num_threads = multiprocessing.cpu_count()
         if runtime_available == "tflite_runtime":
             if "edgetpu" in model_path:
                 LiteRT.__inferencer = tflite.Interpreter(
@@ -47,11 +48,10 @@ class LiteRT:
                     experimental_delegates=[load_delegate('libedgetpu.so.1')]
                 )
             else:
-                LiteRT.__inferencer = tflite.Interpreter(model_path=model_path)
+                LiteRT.__inferencer = tflite.Interpreter(model_path=model_path, num_threads=num_threads)
         else:
-            LiteRT.__inferencer = tf.lite.Interpreter(model_path=model_path)
+            LiteRT.__inferencer = tf.lite.Interpreter(model_path=model_path, num_threads=num_threads)
 
-        LiteRT.__inferencer.SetNumThreads(multiprocessing.cpu_count())
         LiteRT.__inferencer.allocate_tensors()
         LiteRT.__load_input_details()
         LiteRT.__load_output_details()

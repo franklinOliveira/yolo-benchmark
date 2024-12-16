@@ -1,5 +1,6 @@
 import numpy as np
 import onnxruntime as ort
+import cv2
 
 class OnnxRT:
     """
@@ -29,6 +30,9 @@ class OnnxRT:
         Raises:
             RuntimeError: If the model file path is invalid or the session fails to load.
         """
+        session_options = ort.SessionOptions()
+        session_options.intra_op_num_threads = cv2.getNumberOfCPUs()
+
         OnnxRT.__inferencer = ort.InferenceSession(model_path)
         
         OnnxRT.__load_input_details()

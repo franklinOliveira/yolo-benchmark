@@ -15,7 +15,7 @@ include_directories(
 )
 
 link_directories(
-    /usr/local/src/tensorflow/tensorflow/lite/tools/make/gen/rpi_armv7l/lib
+    /usr/local/src/tensorflow/tensorflow/lite/tools/make/gen/linux_aarch64/lib
 )
 
 
