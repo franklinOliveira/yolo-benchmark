@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include "litert.hpp"
-#include "opencvrt.hpp"
+#include "onnxrt.hpp"
 #include "ultralyticsyolo.hpp"
 
 namespace Detector
@@ -14,7 +14,7 @@ namespace Detector
     extern int inferenceTime;
     extern int postprocessTime;
 
-    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh, std::string onnxInferencer);
+    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh);
     std::vector<Detection> run(const cv::Mat& image);
 
 }

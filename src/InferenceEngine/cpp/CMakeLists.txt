@@ -31,7 +31,7 @@ include_directories(
 set(SOURCE_FILES 
     ai/architectures/ultralyticsyolo.cpp
     ai/inferencers/litert.cpp
-    ai/inferencers/opencvrt.cpp
+    ai/inferencers/onnxrt.cpp
     ai/processors/detector.cpp
     detection/postprocessing.cpp
     image/preprocessing.cpp
@@ -46,7 +46,8 @@ set(EXECUTABLE
 add_executable(${EXECUTABLE} ${SOURCE_FILES})
 
 target_link_libraries(${EXECUTABLE} PRIVATE 
-    ${OpenCV_LIBS} 
+    ${OpenCV_LIBS}
+    onnxruntime 
     tensorflow-lite
     flatbuffers
     dl

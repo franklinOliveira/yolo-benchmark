@@ -17,10 +17,9 @@ int main(int argc, char* argv[]) {
     float scoreThresh = 0.5;
     float confidenceThresh = 0.5;
     float iouThresh = 0.5;
-    std::string onnxInferencer = "opencvrt";
 
     // Initialize the detector
-    Detector::init(modelPath, scoreThresh, confidenceThresh, iouThresh, onnxInferencer);
+    Detector::init(modelPath, scoreThresh, confidenceThresh, iouThresh);
 
     // Read the image
     cv::Mat image = cv::imread(imagePath);

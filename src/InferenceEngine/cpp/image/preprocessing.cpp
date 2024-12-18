@@ -9,7 +9,7 @@ namespace ImagePreprocessing
         cv::Size inputSize(sizeVec[0], sizeVec[1]);
         cv::Mat formatedImage;
 
-        if (modelInferencer == "opencvrt")
+        if (modelInferencer == "onnxrt")
         {   
             formatedImage = cv::dnn::blobFromImage(
                 image,

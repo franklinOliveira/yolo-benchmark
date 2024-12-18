@@ -2,7 +2,7 @@
 
 namespace Detector
 {
-    static nlohmann::json startInferencer(std::string modelPath, std::string onnxInferencer);
+    static nlohmann::json startInferencer(std::string modelPath);
     static void loadArchitecture(std::string modelPath, nlohmann::json inputDetails, float scoreThresh, float confidenceThresh, float iouThresh);
 
     static std::string modelInferencer;
@@ -12,9 +12,9 @@ namespace Detector
     int inferenceTime;
     int postprocessTime;
 
-    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh, std::string onnxInferencer)
+    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh)
     {
-        nlohmann::json inputDetails = Detector::startInferencer(modelPath, onnxInferencer);
+        nlohmann::json inputDetails = Detector::startInferencer(modelPath);
         loadArchitecture(modelPath, inputDetails, scoreThresh, confidenceThresh, iouThresh);
     }
 
@@ -34,9 +34,9 @@ namespace Detector
             outputs = LiteRT::forward(input);
         }
 
-        else if (Detector::modelInferencer == "opencvrt")
+        else if (Detector::modelInferencer == "onnxrt")
         {
-            outputs = OpencvRT::forward(input);
+            outputs = OnnxRT::forward(input);
         }
 
         duration = std::chrono::high_resolution_clock::now() - (startTs);
@@ -50,7 +50,7 @@ namespace Detector
         return detections;
     }
 
-    static nlohmann::json startInferencer(std::string modelPath, std::string onnxInferencer)
+    static nlohmann::json startInferencer(std::string modelPath)
     {
         nlohmann::json inputDetails;
 
@@ -61,11 +61,11 @@ namespace Detector
             Detector::modelInferencer = "litert";
         }
 
-        else if ((modelPath.find(".onnx") != std::string::npos) && (onnxInferencer == "opencvrt"))
+        else if (modelPath.find(".onnx") != std::string::npos)
         {
-            OpencvRT::load(modelPath);
-            inputDetails = OpencvRT::inputDetails;
-            Detector::modelInferencer = "opencvrt";
+            OnnxRT::load(modelPath);
+            inputDetails = OnnxRT::inputDetails;
+            Detector::modelInferencer = "onnxrt";
         }
 
         return inputDetails;
