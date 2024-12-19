@@ -3,16 +3,18 @@
 UltralyticsYOLO::UltralyticsYOLO() {}
 UltralyticsYOLO::UltralyticsYOLO(nlohmann::json inputDetails, std::string modelInferencer, float scoreThresh, float confidenceThresh, float iouThresh) : inputDetails(inputDetails), scoreThresh(scoreThresh), confidenceThresh(confidenceThresh), iouThresh(iouThresh)
 {
-    this->formatDetails["size"] = {this->inputDetails["shape"][2], this->inputDetails["shape"][1]};
     this->formatDetails["inferencer"] = modelInferencer;
-
-    if (this->inputDetails.contains("mean"))
+    if (this->formatDetails["inferencer"] == "litert")
     {
-        this->formatDetails["mean"] = this->inputDetails["mean"];
+        this->formatDetails["size"] = {this->inputDetails["shape"][2], this->inputDetails["shape"][1]};
+    }
+    else if (this->formatDetails["inferencer"] == "onnxrt")
+    {
+        this->formatDetails["size"] = {this->inputDetails["shape"][3], this->inputDetails["shape"][2]};
     }
 }
 
-cv::Mat UltralyticsYOLO::preProcess(const cv::Mat& image)
+cv::Mat UltralyticsYOLO::preProcess(const cv::Mat &image)
 {
     cv::Mat inputImage = ImagePreprocessing::format(image, this->formatDetails);
     if (this->formatDetails["inferencer"] == "litert")
@@ -34,7 +36,7 @@ cv::Mat UltralyticsYOLO::preProcess(const cv::Mat& image)
     return inputImage;
 }
 
-std::vector<Detection> UltralyticsYOLO::postProcess(cv::Mat outputs, const cv::Mat& image)
+std::vector<Detection> UltralyticsYOLO::postProcess(cv::Mat outputs, const cv::Mat &image)
 {
     std::vector<int> predictedClasses;
     std::vector<float> predictedScores;

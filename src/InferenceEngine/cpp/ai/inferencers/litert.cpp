@@ -13,7 +13,7 @@ namespace LiteRT
     nlohmann::json outputDetails;
 
     void load(std::string modelPath)
-    {   
+    {
         int numberOfCpus = std::thread::hardware_concurrency();
         LiteRT::model = tflite::FlatBufferModel::BuildFromFile(modelPath.c_str());
         tflite::InterpreterBuilder(*LiteRT::model, LiteRT::resolver)(&LiteRT::interpreter);
@@ -23,7 +23,7 @@ namespace LiteRT
         LiteRT::loadOutputDetails();
     }
 
-    cv::Mat forward(const cv::Mat& image)
+    cv::Mat forward(const cv::Mat &image)
     {
         const int inputSize = LiteRT::inputDetails["size"].get<int>();
         const int outputBatches = LiteRT::outputDetails["batchs"].get<int>();
@@ -33,7 +33,7 @@ namespace LiteRT
         cv::Mat outputs = cv::Mat(3, outputsSize, CV_32F);
 
         if (LiteRT::inputDetails["type"] == "INT8")
-        { 
+        {
             int8_t *inputBuffer = LiteRT::interpreter->typed_input_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
             std::memcpy(inputBuffer, reinterpret_cast<int8_t *>(image.data), inputSize * sizeof(int8_t));
         }
@@ -47,13 +47,13 @@ namespace LiteRT
         {
             return cv::Mat();
         }
-        
+
         if (LiteRT::outputDetails["type"] == "INT8")
-        {   
+        {
             int8_t *outputBuffer = LiteRT::interpreter->typed_output_tensor<int8_t>(LiteRT::interpreter->inputs()[0]);
             const int zeroPoint = LiteRT::outputDetails["zeroPoint"].get<int>();
             const float scale = LiteRT::outputDetails["scale"].get<float>();
-            
+
             for (size_t i = 0; i < outputs.total(); ++i)
             {
                 outputs.at<float>(i) = (static_cast<float>(outputBuffer[i]) - ((float)zeroPoint)) * scale;
@@ -61,7 +61,7 @@ namespace LiteRT
         }
         else if (LiteRT::inputDetails["type"] == "FLOAT32")
         {
-            float *outputBuffer = LiteRT::interpreter->typed_output_tensor<float>(LiteRT::interpreter->inputs()[0]);            
+            float *outputBuffer = LiteRT::interpreter->typed_output_tensor<float>(LiteRT::interpreter->inputs()[0]);
             for (size_t i = 0; i < outputs.total(); ++i)
             {
                 outputs.at<float>(i) = static_cast<float>(outputBuffer[i]);
