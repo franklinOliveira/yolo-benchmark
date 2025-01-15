@@ -2,9 +2,12 @@
 import os
 import cv2
 import argparse
+import json
+from tqdm import tqdm 
 
 from ai.processors.detector import Detector
 from image.plotter import ImagePlotter
+from interface.mqttproducer import MQTTProducer
 
 COCO_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
@@ -27,24 +30,41 @@ def process_images(images_folder: str, model_path: str, output_folder: str):
         confidence_thresh=0.5,
         iou_thresh=0.5,
     )
+
+    mqtt_producer = MQTTProducer(
+        server={
+            "address": "localhost",
+            "port": 1883
+        },
+        client_id="inference"
+    )
+    mqtt_producer.start()
     
     plotter = ImagePlotter(classes=COCO_CLASSES)
     image_files = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-
     os.makedirs(output_folder, exist_ok=True)
 
-    for image_file in image_files:
+    mqtt_producer.produce(
+        topic="inferenceEngine/status",
+        msg=json.dumps({
+            "active": True
+        })
+    )
+    
+    for image_file in tqdm(image_files, desc="Processing images "):
         image_path = os.path.join(images_folder, image_file)
         image = cv2.imread(image_path)
 
-        boxes, classes_ids, scores = Detector.run(image=image)
-
-        duration = Detector.pre_process_time + Detector.inference_time + Detector.post_process_time
-        print(f"Image {image_file} processed in {duration}ms")
-        print(f"  Pre processing in {Detector.pre_process_time}ms")
-        print(f"  Inference in {Detector.inference_time}ms")
-        print(f"  Post processing in {Detector.post_process_time}ms\n")
-
+        boxes, classes_ids, scores = Detector.run(image=image)        
+        mqtt_producer.produce(
+            topic="inferenceEngine/data",
+            msg=json.dumps({
+                "pre_processing_time": Detector.pre_process_time,
+                "inference_time": Detector.inference_time,
+                "post_processing_time": Detector.post_process_time,
+            })
+        )
+        
         for idx in range(len(boxes)):
             plotter.draw_detections(
                 image=image,
@@ -55,9 +75,16 @@ def process_images(images_folder: str, model_path: str, output_folder: str):
 
         output_path = os.path.join(output_folder, f"output_{image_file}")
         cv2.imwrite(output_path, image)
+        
+    mqtt_producer.produce(
+        topic="inferenceEngine/status",
+        msg=json.dumps({
+            "active": False
+        })
+    )
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process images with YOLOv8 model.")
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "--images_folder",
         type=str,
