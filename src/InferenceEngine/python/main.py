@@ -20,13 +20,12 @@ COCO_CLASSES = [
     "toothbrush"
 ]
 
-def process_images(images_folder: str, model_path: str, output_folder: str, onnx_inferencer: str):
+def process_images(images_folder: str, model_path: str, output_folder: str):
     Detector.init(
         model_path=model_path,
         score_thresh=0.25,
         confidence_thresh=0.5,
         iou_thresh=0.5,
-        onnx_inferencer=onnx_inferencer
     )
     
     plotter = ImagePlotter(classes=COCO_CLASSES)
@@ -78,13 +77,6 @@ if __name__ == "__main__":
         help="Path to the folder where output images will be saved."
     )
 
-    parser.add_argument(
-        "--onnx_inferencer",
-        type=str,
-        default="opencvrt",
-        help="If model is ONNX, choose the RT (onnxrt or opencvrt)"
-    )
-
     # Parse arguments
     args = parser.parse_args()
 
@@ -92,6 +84,5 @@ if __name__ == "__main__":
     process_images(
         images_folder=args.images_folder, 
         model_path=args.model_path, 
-        output_folder=args.output_folder,
-        onnx_inferencer=args.onnx_inferencer
+        output_folder=args.output_folder
     )

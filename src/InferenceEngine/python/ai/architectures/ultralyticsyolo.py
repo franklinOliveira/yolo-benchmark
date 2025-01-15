@@ -4,9 +4,9 @@ from typing import Tuple, List, Dict
 from image.preprocessing import ImagePreprocessing
 from detection.postprocessing import DetectionPostprocessing
 
-class YOLO11:
+class UltralyticsYOLO:
     """
-    YOLO11 is a wrapper class designed for object detection using a Ultralytics YOLO-based model.
+    UltralyticsYOLO is a wrapper class designed for object detection using a Ultralytics YOLO-based model.
     It includes methods for preprocessing images before inference and postprocessing
     the model output to extract bounding boxes, class IDs, and confidence scores.
 
@@ -31,7 +31,7 @@ class YOLO11:
         iou_thresh: float,
     ):
         """
-        Initializes the YOLO11 class with model input details and thresholds.
+        Initializes the UltralyticsYOLO class with model input details and thresholds.
 
         Args:
             input_details (Dict[str, any]): Model input configuration, including shape, mean,
