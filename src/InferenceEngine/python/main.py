@@ -23,12 +23,13 @@ COCO_CLASSES = [
     "toothbrush"
 ]
 
-def process_images(images_folder: str, model_path: str, output_folder: str):
+def process_images(images_folder: str, model_path: str, half_cores: bool, output_folder: str):
     Detector.init(
         model_path=model_path,
         score_thresh=0.25,
         confidence_thresh=0.5,
         iou_thresh=0.5,
+        half_cores=half_cores
     )
 
     mqtt_producer = MQTTProducer(
@@ -51,7 +52,7 @@ def process_images(images_folder: str, model_path: str, output_folder: str):
         })
     )
     
-    for image_file in tqdm(image_files, desc="Processing images "):
+    for image_file in tqdm(image_files, desc="[INF. ENGINE] Inferencing images "):
         image_path = os.path.join(images_folder, image_file)
         image = cv2.imread(image_path)
 
@@ -103,6 +104,12 @@ if __name__ == "__main__":
         default="data/output",
         help="Path to the folder where output images will be saved."
     )
+    
+    parser.add_argument(
+        "--half_cores",
+        action="store_true",
+        help="Use the half or full number of CPU cores."
+    )
 
     # Parse arguments
     args = parser.parse_args()
@@ -111,5 +118,6 @@ if __name__ == "__main__":
     process_images(
         images_folder=args.images_folder, 
         model_path=args.model_path, 
+        half_cores=args.half_cores,
         output_folder=args.output_folder
     )

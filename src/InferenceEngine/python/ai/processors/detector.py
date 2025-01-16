@@ -35,7 +35,8 @@ class Detector:
         model_path: str,
         score_thresh: float,
         confidence_thresh: float,
-        iou_thresh: float
+        iou_thresh: float,
+        half_cores: bool
     ):
         """
         Initializes the Detector with the model path, thresholds, and specified inference backend.
@@ -46,12 +47,14 @@ class Detector:
             score_thresh (float): Score threshold for the YOLO model.
             confidence_thresh (float): Confidence threshold for filtering detections.
             iou_thresh (float): Intersection-over-Union threshold for Non-Maximum Suppression.
+            half_cores (bool): Use only half of CPU cores for inference
 
         Raises:
             ValueError: If an invalid model file extension is provided.
         """
         input_details = Detector.__start_inferencer(
             model_path=model_path,
+            half_cores=half_cores
         )
 
         Detector.__load_architecture(
@@ -105,13 +108,14 @@ class Detector:
         return boxes, classes_ids, scores
 
     @staticmethod
-    def __start_inferencer(model_path: str) -> dict:
+    def __start_inferencer(model_path: str, half_cores: bool) -> dict:
         """
         Initializes the inference backend based on the model file type (.tflite or .onnx).
         Loads the model using the specified inferencer and extracts input details.
 
         Args:
             model_path (str): Path to the model file.
+            half_cores (bool): Use only half of CPU cores for inference
 
         Returns:
             dict: Dictionary containing input details of the loaded model.
@@ -119,12 +123,12 @@ class Detector:
         input_details: dict = dict()
 
         if ".tflite" in model_path:
-            LiteRT.load(model_path=model_path)
+            LiteRT.load(model_path=model_path, half_cores=half_cores)
             Detector.__architecture_format = "litert"
             input_details = LiteRT.input_details
             
         elif ".onnx" in model_path:
-            OnnxRT.load(model_path=model_path)
+            OnnxRT.load(model_path=model_path, half_cores=half_cores)
             Detector.__architecture_format = "onnx"
             input_details = OnnxRT.input_details
 

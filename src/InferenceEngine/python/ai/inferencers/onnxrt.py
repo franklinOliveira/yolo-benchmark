@@ -1,6 +1,6 @@
 import numpy as np
 import onnxruntime as ort
-import cv2
+import multiprocessing
 
 class OnnxRT:
     """
@@ -19,19 +19,25 @@ class OnnxRT:
     output_details: dict = dict()
 
     @staticmethod
-    def load(model_path: str) -> None:
+    def load(model_path: str, half_cores: bool) -> None:
         """
         Loads an ONNX model from the specified path and initializes the ONNX runtime session.
         Populates input and output details for the model.
 
         Args:
             model_path (str): Path to the ONNX model file.
+            half_cores (bool): Use only half of CPU cores for inference
 
         Raises:
             RuntimeError: If the model file path is invalid or the session fails to load.
         """
+        
+        num_cores = multiprocessing.cpu_count()
+        if half_cores:
+            num_cores = num_cores // 2
+            
         session_options = ort.SessionOptions()
-        session_options.intra_op_num_threads = cv2.getNumberOfCPUs()
+        session_options.intra_op_num_threads = num_cores
 
         OnnxRT.__inferencer = ort.InferenceSession(model_path)
         

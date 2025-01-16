@@ -3,11 +3,12 @@ import json
 
 class PerformanceMetrics:
     __is_active: bool = False
+    __mqtt_consumer: MQTTConsumer = None
+
     __pre_process_times: list = list()
     __inference_times: list = list()
     __post_process_times: list = list()
-    __mqtt_consumer: MQTTConsumer = None
-
+    
     @staticmethod
     def init() -> None:
         PerformanceMetrics.__mqtt_consumer = MQTTConsumer(
@@ -39,7 +40,7 @@ class PerformanceMetrics:
             PerformanceMetrics.__post_process_times.append(int(msg['post_processing_time']))
 
     @staticmethod
-    def get_metrics() -> list:
+    def get_measures() -> list:
         if PerformanceMetrics.__pre_process_times:
             return PerformanceMetrics.__pre_process_times, PerformanceMetrics.__inference_times, PerformanceMetrics.__post_process_times
         else:

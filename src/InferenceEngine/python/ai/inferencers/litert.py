@@ -29,18 +29,22 @@ class LiteRT:
     output_details: dict = dict()
 
     @staticmethod
-    def load(model_path: str) -> None:
+    def load(model_path: str, half_cores: bool) -> None:
         """
         Loads a TensorFlow Lite model from the specified path. If the model file name 
         contains 'edgetpu', the Edge TPU delegate is loaded for hardware acceleration.
 
         Args:
             model_path (str): Path to the TensorFlow Lite model file.
+            half_cores (bool): Use only half of CPU cores for inference
 
         Raises:
             RuntimeError: If the model file path is invalid or the interpreter fails to load.
         """
         num_threads = multiprocessing.cpu_count()
+        if half_cores:
+            num_threads = num_threads // 2
+            
         if runtime_available == "tflite_runtime":
             if "edgetpu" in model_path:
                 LiteRT.__inferencer = tflite.Interpreter(
