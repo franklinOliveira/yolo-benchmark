@@ -12,9 +12,14 @@ namespace LiteRT
     nlohmann::json inputDetails;
     nlohmann::json outputDetails;
 
-    void load(std::string modelPath)
+    void load(std::string modelPath, std::string cpuCores)
     {
         int numberOfCpus = std::thread::hardware_concurrency();
+        if (cpuCores == "half")
+        {
+            numberOfCpus = numberOfCpus / 2;
+        }
+
         LiteRT::model = tflite::FlatBufferModel::BuildFromFile(modelPath.c_str());
         tflite::InterpreterBuilder(*LiteRT::model, LiteRT::resolver)(&LiteRT::interpreter);
         LiteRT::interpreter->SetNumThreads(numberOfCpus);

@@ -14,7 +14,7 @@ namespace Detector
     extern int inferenceTime;
     extern int postprocessTime;
 
-    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh);
+    void init(std::string modelPath, std::string cpuCores, float scoreThresh, float confidenceThresh, float iouThresh);
     std::vector<Detection> run(const cv::Mat& image);
 
 }

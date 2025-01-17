@@ -13,9 +13,14 @@ namespace OnnxRT
     nlohmann::json inputDetails;
     nlohmann::json outputDetails;
 
-    void load(std::string modelPath)
+    void load(std::string modelPath, std::string cpuCores)
     {
         int numberOfCpus = std::thread::hardware_concurrency();
+        if (cpuCores == "half")
+        {
+            numberOfCpus = numberOfCpus / 2;
+        }
+        
         OnnxRT::sessionOptions.SetInterOpNumThreads(numberOfCpus);
         OnnxRT::sessionOptions.SetIntraOpNumThreads(numberOfCpus);
         OnnxRT::sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_DISABLE_ALL);

@@ -100,10 +100,8 @@ class UltralyticsYOLO:
             image (np.ndarray): Original input image, used to calculate scaling factors.
 
         Returns:
-            Tuple[List[np.ndarray], List[int], List[float]]:
-                - List of bounding boxes, where each box is represented as an np.ndarray.
-                - List of integer class IDs corresponding to detected objects.
-                - List of confidence scores for each detected object.
+            List[Detection]
+                List of computed detections with bbox, score and class ID.
         """
         output: List[np.ndarray] = [np.transpose(pred) for pred in output]
 
@@ -127,7 +125,7 @@ class UltralyticsYOLO:
             scores.extend(pred[np.arange(pred.shape[0]), idx + 4])
             classes_ids.extend(idx)
 
-        boxes, scores, classes_ids = DetectionPostprocessing.apply_nms(
+        detections = DetectionPostprocessing.apply_nms(
             boxes=boxes,
             scores=scores,
             classes_ids=classes_ids,
@@ -137,4 +135,4 @@ class UltralyticsYOLO:
             score_thresh=self.score_thresh,
         )
 
-        return boxes, scores, classes_ids
+        return detections

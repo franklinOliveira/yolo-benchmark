@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from typing import List, Tuple
+from model.detection import Detection
 
 class DetectionPostprocessing:
     """
@@ -54,14 +55,10 @@ class DetectionPostprocessing:
 
         Returns
         -------
-        Tuple[List[np.ndarray], List[int], List[float]]
-            A tuple containing lists of final bounding boxes, class IDs, and scores
-            after NMS and scaling adjustments.
+        List[Detection]
+            List of computed detections with bbox, score and class ID.
         """
-        final_boxes: List[np.ndarray] = []
-        final_scores: List[float] = []
-        final_classes_ids: List[int] = []
-
+        detections: List[Detection] = []
         indices: np.ndarray = cv2.dnn.NMSBoxes(
             boxes, scores, confidence_thresh, iou_thresh
         )
@@ -71,18 +68,17 @@ class DetectionPostprocessing:
                 box: np.ndarray = boxes[i]
                 box[0] = int((box[0] - 0.5 * box[2]) * input_factor[1])  
                 box[1] = int((box[1] - 0.5 * box[3]) * input_factor[0])  
-                box[2] = int(box[2] * input_factor[1])  
-                box[3] = int(box[3] * input_factor[0]) 
+                box[2] = box[0] + int(box[2] * input_factor[1])  
+                box[3] = box[1] + int(box[3] * input_factor[0]) 
                 
                 score: float = scores[i]
                 class_id: int = classes_ids[i]
 
                 if score > score_thresh:
-                    final_boxes.append(box)
-                    final_classes_ids.append(class_id)
-                    final_scores.append(score)
-
-        return final_boxes, final_classes_ids, final_scores
+                    detection = Detection(class_id=class_id, locations=box, score=score)
+                    detections.append(detection)
+                    
+        return detections
     
     @staticmethod
     def __revert_letterbox(

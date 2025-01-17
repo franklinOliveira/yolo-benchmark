@@ -2,26 +2,11 @@
 import os
 import cv2
 import argparse
-import json
 from tqdm import tqdm 
 
 from ai.processors.detector import Detector
 from image.plotter import ImagePlotter
 from interface.mqttproducer import MQTTProducer
-
-COCO_CLASSES = [
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
-    "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", 
-    "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", 
-    "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", 
-    "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", 
-    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", 
-    "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", 
-    "chair", "couch", "potted plant", "bed", "dining table", "toilet", "TV", "laptop", 
-    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", 
-    "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", 
-    "toothbrush"
-]
 
 def process_images(images_folder: str, model_path: str, half_cores: bool, output_folder: str):
     Detector.init(
@@ -41,47 +26,40 @@ def process_images(images_folder: str, model_path: str, half_cores: bool, output
     )
     mqtt_producer.start()
     
-    plotter = ImagePlotter(classes=COCO_CLASSES)
     image_files = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
     os.makedirs(output_folder, exist_ok=True)
 
     mqtt_producer.produce(
         topic="inferenceEngine/status",
-        msg=json.dumps({
-            "active": True
-        })
+        msg={"active": True}
     )
     
     for image_file in tqdm(image_files, desc="[INF. ENGINE] Inferencing images "):
         image_path = os.path.join(images_folder, image_file)
         image = cv2.imread(image_path)
 
-        boxes, classes_ids, scores = Detector.run(image=image)        
+        detections = Detector.run(image=image)        
         mqtt_producer.produce(
             topic="inferenceEngine/data",
-            msg=json.dumps({
+            msg={
                 "pre_processing_time": Detector.pre_process_time,
                 "inference_time": Detector.inference_time,
                 "post_processing_time": Detector.post_process_time,
-            })
+            }
         )
         
-        for idx in range(len(boxes)):
-            plotter.draw_detections(
+        for detection in detections:
+            ImagePlotter.draw_detections(
                 image=image,
-                box=boxes[idx],
-                score=scores[idx],
-                class_id=classes_ids[idx]
+                detection=detection
             )
 
-        output_path = os.path.join(output_folder, f"output_{image_file}")
+        output_path = os.path.join(output_folder, image_file)
         cv2.imwrite(output_path, image)
         
     mqtt_producer.produce(
         topic="inferenceEngine/status",
-        msg=json.dumps({
-            "active": False
-        })
+        msg={"active": False}
     )
 
 if __name__ == "__main__":
@@ -98,12 +76,6 @@ if __name__ == "__main__":
         required=True,
         help="Path to the YOLOv8 model file."
     )
-    parser.add_argument(
-        "--output_folder",
-        type=str,
-        default="data/output",
-        help="Path to the folder where output images will be saved."
-    )
     
     parser.add_argument(
         "--half_cores",
@@ -111,6 +83,13 @@ if __name__ == "__main__":
         help="Use the half or full number of CPU cores."
     )
 
+    parser.add_argument(
+        "--output_folder",
+        type=str,
+        default="data/output",
+        help="Path to the folder where output images will be saved."
+    )    
+    
     # Parse arguments
     args = parser.parse_args()
 

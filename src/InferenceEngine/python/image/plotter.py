@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from typing import List, Tuple
+from model.detection import Detection
 
 class ImagePlotter:
     """
@@ -19,29 +19,24 @@ class ImagePlotter:
         Draws a detection bounding box with the class label and confidence score on the image.
     """
 
-    classes: List[str] = None
-    color_palette: np.ndarray = None
+    classes = [
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+        "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", 
+        "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", 
+        "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", 
+        "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", 
+        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", 
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", 
+        "chair", "couch", "potted plant", "bed", "dining table", "toilet", "TV", "laptop", 
+        "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", 
+        "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", 
+        "toothbrush"
+    ]
 
-    def __init__(self, classes: List[str]):
-        """
-        Initializes the ImagePlotter with a list of class names and generates a color palette
-        for each class.
-
-        Parameters
-        ----------
-        classes : List[str]
-            A list of class names for the detected objects. Each class ID in a detection
-            should correspond to an index in this list.
-        """
-        self.classes = classes
-        self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
-
+    @staticmethod
     def draw_detections(
-        self,
         image: np.ndarray,
-        box: Tuple[int, int, int, int],
-        score: float,
-        class_id: int
+        detection: Detection
     ) -> None:
         """
         Draws a bounding box around the detected object with the class label and confidence score.
@@ -63,39 +58,33 @@ class ImagePlotter:
         -------
         None
         """
-        x1, y1, w, h = box
-        color = self.color_palette[class_id]
-        
-        label = f"{self.classes[class_id]}: {score:.2f}"
-        font_scale: float = max(0.5, min(1, w / 200))  
-        thickness: int = max(1, int(w / 150))  
-        
-        (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-        label_width = max(int(w), label_width)
-        
-        label_x: int = x1
-        label_y: int = y1 - 10 if y1 - 10 > label_height else y1 + h + label_height + 10
-
+        bbox = detection.get_bounding_box()
+        class_id = detection.get_class_id()
+        score = detection.get_score() * 100
+                
         # Draw the bounding box
-        cv2.rectangle(image, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color, 2)
+        cv2.rectangle(image, (bbox.xMin, bbox.yMin), (bbox.xMax, bbox.yMax), (64, 203, 255), 2)
 
         # Draw the label background
+        label = f"{ImagePlotter.classes[class_id]}: {score:.0f}%"
+        text_size, baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_DUPLEX, 0.5, 1)
+        text_width, _ = text_size
+                
         cv2.rectangle(
             image,
-            (int(label_x), int(label_y - label_height)),
-            (int(label_x + label_width), int(label_y)),
-            color,
+            (bbox.xMin, (bbox.yMin - 15)),
+            (bbox.xMin + text_width + 2, bbox.yMin),
+            (64, 203, 255),
             cv2.FILLED,
         )
-
+        
         # Draw the label text
         cv2.putText(
             image,
             label,
-            (int(label_x), int(label_y - 5)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            font_scale,
+            ((bbox.xMin + 2), bbox.yMin),
+            cv2.FONT_HERSHEY_DUPLEX,
+            0.50,
             (0, 0, 0),
-            thickness,
-            cv2.LINE_AA
+            1        
         )

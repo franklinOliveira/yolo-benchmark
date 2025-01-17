@@ -1,6 +1,7 @@
 from ai.inferencers.litert import LiteRT
 from ai.inferencers.onnxrt import OnnxRT
 from ai.architectures.ultralyticsyolo import UltralyticsYOLO
+
 import numpy as np
 import time
 
@@ -75,12 +76,10 @@ class Detector:
             image (np.ndarray): Input image to be processed.
 
         Returns:
-            tuple: Contains lists of bounding boxes (np.ndarray), class IDs (int), and scores (float).
+            List[Detection]
+                List of computed detections with bbox, score and class ID.
         """
-        boxes: list[np.ndarray]
-        classes_ids: list[int]
-        scores: list[float]
-
+        
         input: np.ndarray
         output: np.ndarray
 
@@ -102,10 +101,10 @@ class Detector:
 
         # Postprocess step
         start_ts = time.time()
-        boxes, classes_ids, scores = Detector.__architecture.post_process(output=output, image=image)
+        detections = Detector.__architecture.post_process(output=output, image=image)
         Detector.post_process_time = int((time.time() - start_ts) * 1000)
 
-        return boxes, classes_ids, scores
+        return detections
 
     @staticmethod
     def __start_inferencer(model_path: str, half_cores: bool) -> dict:

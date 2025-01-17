@@ -2,7 +2,7 @@
 
 namespace Detector
 {
-    static nlohmann::json startInferencer(std::string modelPath);
+    static nlohmann::json startInferencer(std::string modelPath, std::string cpuCores);
     static void loadArchitecture(std::string modelPath, nlohmann::json inputDetails, float scoreThresh, float confidenceThresh, float iouThresh);
 
     static std::string modelInferencer;
@@ -12,9 +12,9 @@ namespace Detector
     int inferenceTime;
     int postprocessTime;
 
-    void init(std::string modelPath, float scoreThresh, float confidenceThresh, float iouThresh)
+    void init(std::string modelPath, std::string cpuCores, float scoreThresh, float confidenceThresh, float iouThresh)
     {
-        nlohmann::json inputDetails = Detector::startInferencer(modelPath);
+        nlohmann::json inputDetails = Detector::startInferencer(modelPath, cpuCores);
         loadArchitecture(modelPath, inputDetails, scoreThresh, confidenceThresh, iouThresh);
     }
 
@@ -50,20 +50,20 @@ namespace Detector
         return detections;
     }
 
-    static nlohmann::json startInferencer(std::string modelPath)
+    static nlohmann::json startInferencer(std::string modelPath, std::string cpuCores)
     {
         nlohmann::json inputDetails;
 
         if (modelPath.find(".tflite") != std::string::npos)
         {
-            LiteRT::load(modelPath);
+            LiteRT::load(modelPath, cpuCores);
             inputDetails = LiteRT::inputDetails;
             Detector::modelInferencer = "litert";
         }
 
         else if (modelPath.find(".onnx") != std::string::npos)
         {
-            OnnxRT::load(modelPath);
+            OnnxRT::load(modelPath, cpuCores);
             inputDetails = OnnxRT::inputDetails;
             Detector::modelInferencer = "onnxrt";
         }

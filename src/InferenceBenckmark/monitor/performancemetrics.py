@@ -27,9 +27,6 @@ class PerformanceMetrics:
     @staticmethod
     def update() -> None:
         topic, msg = PerformanceMetrics.__mqtt_consumer.consume()
-        
-        if msg is not None:
-            msg = json.loads(msg)
             
         if topic == "inferenceEngine/status":
             PerformanceMetrics.__is_active = bool(msg['active'])

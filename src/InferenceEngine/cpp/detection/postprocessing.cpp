@@ -22,8 +22,6 @@ namespace ImagePostprocessing
             
             Detection detection(classId, score, location);
             detections.push_back(detection);
-
-            std::cout << detection.getClassId() << " at (" << detection.getBoundingBox().xMin << ", " << detection.getBoundingBox().yMin << ") with " << detection.getScore() << std::endl;
         }
 
         return detections;

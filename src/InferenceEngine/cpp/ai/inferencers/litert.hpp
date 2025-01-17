@@ -14,6 +14,6 @@ namespace LiteRT
     extern nlohmann::json inputDetails;
     extern nlohmann::json outputDetails;
 
-    void load(std::string modelPath);
+    void load(std::string modelPath, std::string cpuCores);
     cv::Mat forward(const cv::Mat& image);
 }

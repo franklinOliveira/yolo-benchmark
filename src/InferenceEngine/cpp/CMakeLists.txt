@@ -7,10 +7,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(PahoMqttCpp REQUIRED)
+
 include_directories(
     /usr/local/src/tensorflow
     /usr/local/src/tensorflow/tensorflow/lite/tools/make/downloads/flatbuffers/include
     /usr/local/src/tensorflow/tensorflow/lite/tools/make/downloads/absl
+    /usr/local/src/indicators/include
     ${OpenCV_INCLUDE_DIRS}  
 )
 
@@ -18,13 +21,13 @@ link_directories(
     /usr/local/src/tensorflow/tensorflow/lite/tools/make/gen/linux_aarch64/lib
 )
 
-
 include_directories(
     ai/architectures
     ai/inferencers
     ai/processors
     detection
     image
+    interface
     model
 )
 
@@ -34,7 +37,9 @@ set(SOURCE_FILES
     ai/inferencers/onnxrt.cpp
     ai/processors/detector.cpp
     detection/postprocessing.cpp
+    image/plotter.cpp
     image/preprocessing.cpp
+    interface/mqttproducer.cpp
     model/detection.cpp
     main.cpp
 )
@@ -53,6 +58,7 @@ target_link_libraries(${EXECUTABLE} PRIVATE
     dl
     Threads::Threads
     -lstdc++fs
+    PahoMqttCpp::paho-mqttpp3
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -fexceptions -pthread")

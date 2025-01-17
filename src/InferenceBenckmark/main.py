@@ -1,36 +1,24 @@
 import argparse
 import os
 from time import sleep
-from report.table import generate_table
+from datetime import datetime
+from report.table import generate_table, export_table
 
 from monitor.performancemetrics import PerformanceMetrics
 from monitor.consumptionmetrics import ConsumptionMetrics
 
 def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, language: str):
     '''
-    STAGE 1: Inference engine activation
-    '''
-    inferencer_cmd: str = ""
-    if language == "python":
-        inferencer_cmd = "python3 /home/pi/yolo-benchmark/src/InferenceEngine/python/main.py"
-        inferencer_cmd += f" --images_folder {images_folder}"
-        inferencer_cmd += f" --model_path {model_path}"
-        if half_cores:
-            inferencer_cmd += " --half_cores"
-
-    elif language == "cpp":
-        pass
-    
-    os.system(f"{inferencer_cmd} &")
-    
-    '''
-    STAGE 2: Benchmark activation
+    STAGE 1: Benchmark activation
     '''
     with open("/proc/device-tree/model", "r") as file:
-        board_name = file.read().strip()
+        board_name = file.read().strip().replace("\x00", "")
         
     model_name = model_path.split("/")[-1].replace('.', '_').split("_")
+    current_datetime = datetime.now()
+    current_datetime = current_datetime.strftime("%Y%m%dT%H%M%S")
     experiment_specs = {
+        "datetime": current_datetime,
         "board": board_name,
         "architecture": model_name[0],
         "type": model_name[1],
@@ -40,7 +28,7 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
     }
     
     print(
-        f"[INF. BENCHMARK] Experiment started\n"
+        f"[INF. BENCHMARK] Experiment {experiment_specs['datetime']} started\n"
         f"    Board specs\n"
         f"         Name: {experiment_specs['board']}\n"
         f"    Model specs\n"
@@ -51,8 +39,38 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
         f"         Language: {experiment_specs['language']}\n"
         f"         CPU cores: {experiment_specs['cores']}"
     )
+    
+    output_path = f"/home/pi/yolo-benchmark/data/output/{experiment_specs['board'].replace(' ', '_')}/"
+    output_path += f"{experiment_specs['architecture']}_{experiment_specs['type']}_"
+    output_path += f"{experiment_specs['format']}_{experiment_specs['language']}_"
+    output_path += f"{experiment_specs['cores']}/{experiment_specs['datetime']}"
+    os.makedirs(output_path, exist_ok=True)
+    
     PerformanceMetrics.init()
     ConsumptionMetrics.init()
+    
+    '''
+    STAGE 2: Inference engine activation
+    '''
+    inferencer_cmd: str = ""
+    if language == "python":
+        inferencer_cmd = "python3 /home/pi/yolo-benchmark/src/InferenceEngine/python/main.py"
+        inferencer_cmd += f" --images_folder {images_folder}"
+        inferencer_cmd += f" --model_path {model_path}"
+        if half_cores:
+            inferencer_cmd += " --half_cores"
+        inferencer_cmd += f" --output {output_path}/detections"
+
+    elif language == "cpp":
+        inferencer_cmd = "cd /home/pi/yolo-benchmark/src/InferenceEngine/cpp/ && sudo ./yolo_benchmark"
+        inferencer_cmd += f" {images_folder} {model_path}"
+        if half_cores:
+            inferencer_cmd += " half"
+        else:
+            inferencer_cmd += " full"
+        inferencer_cmd += f" {output_path}/detections"
+    
+    os.system(f"{inferencer_cmd} &")
     
     '''
     STAGE 3: Benchmark monitoring
@@ -83,9 +101,17 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
     )
     print("\n######################## PERFORMANCE METRICS ########################")
     print(performance_table)
+    export_table(
+        table=performance_table, 
+        file_path=f"{output_path}/performance.csv"
+    )
     print("\n########################  CONSUMPTION METRICS  ########################")
     print(consumption_table)
-    print("[INF. BENCHMARK] Benchmark finished")
+    export_table(
+        table=consumption_table, 
+        file_path=f"{output_path}/consumption.csv"
+    )
+    print(f"[INF. BENCHMARK] Experiment {experiment_specs['datetime']} finished")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
