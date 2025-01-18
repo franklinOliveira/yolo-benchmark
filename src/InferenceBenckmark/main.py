@@ -85,6 +85,7 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
     min_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the minimum current consumption in mA: "))
     max_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the maximum current consumption in mA: "))
     ConsumptionMetrics.compute_current_levels(min_current=min_current_consumption, max_current=max_current_consumption)
+    
     '''
     STAGE 4: Report generation
     '''

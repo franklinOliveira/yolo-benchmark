@@ -8,7 +8,10 @@ from ai.processors.detector import Detector
 from image.plotter import ImagePlotter
 from interface.mqttproducer import MQTTProducer
 
-def process_images(images_folder: str, model_path: str, half_cores: bool, output_folder: str):
+def start_inferencing(images_folder: str, model_path: str, half_cores: bool, output_folder: str):
+    '''
+    STAGE 1: Inference engine setup
+    '''
     Detector.init(
         model_path=model_path,
         score_thresh=0.25,
@@ -29,6 +32,9 @@ def process_images(images_folder: str, model_path: str, half_cores: bool, output
     image_files = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
     os.makedirs(output_folder, exist_ok=True)
 
+    '''
+    STAGE 2: Continuous inferencing
+    '''
     mqtt_producer.produce(
         topic="inferenceEngine/status",
         msg={"active": True}
@@ -56,7 +62,10 @@ def process_images(images_folder: str, model_path: str, half_cores: bool, output
 
         output_path = os.path.join(output_folder, image_file)
         cv2.imwrite(output_path, image)
-        
+    
+    '''
+    STAGE 3: Stop inferencing and alerting
+    '''
     mqtt_producer.produce(
         topic="inferenceEngine/status",
         msg={"active": False}
@@ -94,7 +103,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call the function with the provided arguments
-    process_images(
+    start_inferencing(
         images_folder=args.images_folder, 
         model_path=args.model_path, 
         half_cores=args.half_cores,
