@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         {
             ImagePlotter::drawDetections(image, detection);
         }
-        cv::imwrite(outputFolder + "/" + imageName, image);
+        //cv::imwrite(outputFolder + "/" + imageName, image);
 
         nlohmann::json dataMsg;
         dataMsg["pre_processing_time"] = Detector::preprocessTime;

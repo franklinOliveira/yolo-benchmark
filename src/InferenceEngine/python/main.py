@@ -60,8 +60,8 @@ def start_inferencing(images_folder: str, model_path: str, half_cores: bool, out
                 detection=detection
             )
 
-        output_path = os.path.join(output_folder, image_file)
-        cv2.imwrite(output_path, image)
+        #output_path = os.path.join(output_folder, image_file)
+        #cv2.imwrite(output_path, image)
     
     '''
     STAGE 3: Stop inferencing and alerting

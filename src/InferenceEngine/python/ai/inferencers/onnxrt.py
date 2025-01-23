@@ -35,11 +35,12 @@ class OnnxRT:
         num_cores = multiprocessing.cpu_count()
         if half_cores:
             num_cores = num_cores // 2
-            
+        
+        print(f"Number of cores: {num_cores}")
         session_options = ort.SessionOptions()
         session_options.intra_op_num_threads = num_cores
 
-        OnnxRT.__inferencer = ort.InferenceSession(model_path)
+        OnnxRT.__inferencer = ort.InferenceSession(model_path, sess_options=session_options)
         
         OnnxRT.__load_input_details()
         OnnxRT.__load_output_details()
