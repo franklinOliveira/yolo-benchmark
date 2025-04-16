@@ -47,7 +47,10 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
     os.makedirs(output_path, exist_ok=True)
     
     PerformanceMetrics.init()
-    ConsumptionMetrics.init()
+    if board_name == "Raspberry Pi 5 Model B Rev 1.0":
+        ConsumptionMetrics.init(internal_current_sensor=True)
+    else:
+        ConsumptionMetrics.init(internal_current_sensor=False)
     
     '''
     STAGE 2: Inference engine activation
@@ -82,9 +85,10 @@ def start_benchmarking(images_folder: str, model_path: str, half_cores: bool, la
         if not PerformanceMetrics.is_active() and PerformanceMetrics.get_measures() is not None:
             break
     
-    min_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the minimum current consumption in mA: "))
-    max_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the maximum current consumption in mA: "))
-    ConsumptionMetrics.compute_current_levels(min_current=min_current_consumption, max_current=max_current_consumption, half_cores=half_cores)
+    if board_name != "Raspberry Pi 5 Model B Rev 1.0":
+        min_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the minimum current consumption in mA: "))
+        max_current_consumption = int(input(f"[INF. BENCHMARK] Enter with the maximum current consumption in mA: "))
+        ConsumptionMetrics.compute_current_levels(min_current=min_current_consumption, max_current=max_current_consumption, half_cores=half_cores)
     
     '''
     STAGE 4: Report generation
